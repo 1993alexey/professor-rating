@@ -1,8 +1,8 @@
 import express from 'express'
 import cors from 'cors'
 import bodyParser from 'body-parser'
-import router from './router'
 import dbConnector from './dbConnector'
+import router from './router'
 import scraper from './scraper'
 
 dbConnector()

@@ -12,4 +12,8 @@ function createProfessor(professor) {
     Professor.create(professor)
 }
 
-export { getProfessors, getProfessor, createProfessor }
+function createProfessors(professors) {
+    Professor.insertMany(professors)
+}
+
+export { getProfessors, getProfessor, createProfessor, createProfessors }

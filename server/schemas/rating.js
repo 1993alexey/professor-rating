@@ -1,17 +1,15 @@
 
 import mongoose from 'mongoose'
+import courseMeta from './courseMeta'
 
 const ratingSchema = new mongoose.Schema({
     quality: String,
     difficulty: String,
     class: String,
-    forCredit: Boolean,
-    attendance: Boolean,
-    takeAgain: Boolean,
-    grade: String,
-    textbook: Boolean,
+    message: String,
+    courseMeta: courseMeta.schema,
     tags: [{ type: String }],
-    createdAt: Date
+    createdAt: String
 })
 
 const Rating = mongoose.model('Rating', ratingSchema)

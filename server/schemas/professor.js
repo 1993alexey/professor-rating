@@ -1,16 +1,16 @@
-
 import mongoose from 'mongoose'
-import ratingSchema from './rating'
+import rating from './rating'
 
 const professorSchema = new mongoose.Schema({
-    rmpId: Number,
+    url: String,
     firstName: String,
     lastName: String,
     quality: Number,
     difficulty: Number,
     university: String,
     department: String,
-    ratings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Rating' }]
+    takeAgain: String,
+    ratings: [rating.schema]
 })
 
 const Professor = mongoose.model('Professor', professorSchema)
