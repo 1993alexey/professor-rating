@@ -1,10 +1,12 @@
 import axios from 'axios'
 import { JSDOM } from 'jsdom'
+import fs from 'fs'
 import { createProfessors } from './services/professorService'
+import { createUpdateAdministrative, getAdministrative } from './services/administrativeService'
 
 const baseUrl = 'https://www.ratemyprofessors.com/'
 const searchParams = {
-    query: 'Neff',
+    query: '',
     state: 'ID',
     school: 'brigham young university - idaho'
 }
@@ -83,41 +85,89 @@ function getRating(block) {
     return { quality, difficulty, class: classCode, message, tags, courseMeta, createdAt }
 }
 
+function getFeedback(feedbackBlock) {
+    const feedbackTransform = {
+        'Would take again': 'takeAgain',
+        'Level of Difficulty': 'difficulty',
+    }
+
+    let difficulty
+    let takeAgain
+
+    for (let feedback of feedbackBlock.children) {
+        const feedbackTransformed = feedbackTransform[feedback.children[1].textContent]
+        if (feedbackTransformed == 'difficulty')
+            difficulty = feedback.children[0].textContent
+        else if (feedbackTransformed == 'takeAgain')
+            takeAgain = feedback.children[0].textContent
+    }
+
+    return { difficulty, takeAgain }
+}
+
 async function getProfessor(url) {
-    const document = (await JSDOM.fromURL(url, { resources: 'usable' })).window.document
-    const ratings = []
-    const name = document.getElementsByClassName('NameTitle__Name-dowf0z-0').item(0).textContent
-    const firstName = name.split(' ')[0]
-    const lastName = name.split(' ')[1]
-    const quality = document.getElementsByClassName('RatingValue__Numerator-qw8sqy-2').item(0).textContent
-    const takeAgain = document.getElementsByClassName('FeedbackItem__FeedbackNumber-uof32n-1').item(0).textContent
-    const difficulty = document.getElementsByClassName('FeedbackItem__FeedbackNumber-uof32n-1').item(1).textContent
-    const institution = document.getElementsByClassName('NameTitle__Title-dowf0z-1').item(0)
-    const department = institution.firstElementChild.firstElementChild.textContent.replace(' department', '')
-    const university = institution.children[1].textContent
-    const ratingBlocks = document.getElementsByClassName('Rating__StyledRating-sc-1rhvpxz-0')
+    try {
+        const document = (await JSDOM.fromURL(url, { resources: 'usable' })).window.document
+        const ratings = []
+        const name = document.getElementsByClassName('NameTitle__Name-dowf0z-0').item(0).textContent
+        const firstName = name.split(' ')[0]
+        const lastName = name.split(' ')[1]
+        const quality = document.getElementsByClassName('RatingValue__Numerator-qw8sqy-2').item(0).textContent
+        const feedback = getFeedback(document.getElementsByClassName('TeacherFeedback__StyledTeacherFeedback-gzhlj7-0')[0])
+        const takeAgain = feedback.takeAgain
+        const difficulty = feedback.difficulty
+        const institution = document.getElementsByClassName('NameTitle__Title-dowf0z-1').item(0)
+        const department = institution.firstElementChild.firstElementChild.textContent.replace(' department', '')
+        const university = institution.children[1].textContent
+        const ratingBlocks = document.getElementsByClassName('Rating__StyledRating-sc-1rhvpxz-0')
 
-    for (let block of ratingBlocks)
-        ratings.push(getRating(block))
+        for (let block of ratingBlocks)
+            ratings.push(getRating(block))
 
-    return { url, firstName, lastName, quality, difficulty, department, university, ratings }
+        return { url, firstName, lastName, quality, difficulty, takeAgain, department, university, ratings }
+    } catch (e) {
+        console.error('Unable to parse information: ', url)
+        console.error(e.message)
+    }
+}
+
+function getDayDiff(date1, date2) {
+    const diffTime = Math.abs(date2 - date1)
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays
 }
 
 export default async function run() {
-    // const numPages = await getNumPages(searchParams)
-    const urls = []
+    let numPages
+    let urls = []
     const professors = []
+    const administrative = await getAdministrative()
+    const dayDiff = getDayDiff(administrative.dateFetched, new Date())
 
-    // for (let i = 1; i <= numPages; i++) {
-    //     const document = await fetchPage(i, searchParams)
-    //     urls.push(getProfessorUrls(document))
-    // }
-    urls.push('https://www.ratemyprofessors.com/ShowRatings.jsp?tid=926025')
+    if (dayDiff > 20) {
+        numPages = await getNumPages(searchParams)
+        for (let i = 1; i <= numPages; i++) {
+            const document = await fetchPage(i, searchParams)
+            urls.push(getProfessorUrls(document))
+        }
 
-    for (let url of urls.flat()) {
-        const professor = await getProfessor(url)
-        professors.push(professor)
+        urls = urls.flat()
+        createUpdateAdministrative({ urls, dateFetched: new Date })
+    } else {
+        urls = administrative.urls
     }
 
-    createProfessors(professors)
+    let i = 0
+    for (let url of urls) {
+        if (i > 2)
+            break
+        console.log(i)
+        const professor = await getProfessor(url)
+        professors.push(professor)
+        i++
+    }
+
+    fs.writeFile('rmpdata.txt', JSON.stringify(professors), () => console.log)
+    // await createProfessors(professors)
+    console.log('Scraping is finished')
 }
