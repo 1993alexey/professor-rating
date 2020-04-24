@@ -3,8 +3,10 @@ import cors from 'cors'
 import bodyParser from 'body-parser'
 import router from './router'
 import dbConnector from './dbConnector'
+import scraper from './scraper'
 
 dbConnector()
+scraper()
 const app = express()
 const PORT = process.env.PORT || 3000
 
