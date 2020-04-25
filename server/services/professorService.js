@@ -13,6 +13,11 @@ function createProfessor(professor) {
 }
 
 function createProfessors(professors) {
+    for (let professor of professors) {
+        if (professor.quality == null)
+            delete professor.quality
+    }
+
     Professor.insertMany(professors)
 }
 

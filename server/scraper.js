@@ -112,7 +112,7 @@ async function getProfessor(url) {
         const name = document.getElementsByClassName('NameTitle__Name-dowf0z-0').item(0).textContent
         const firstName = name.split(' ')[0]
         const lastName = name.split(' ')[1]
-        const quality = document.getElementsByClassName('RatingValue__Numerator-qw8sqy-2').item(0).textContent
+        let quality = document.getElementsByClassName('RatingValue__Numerator-qw8sqy-2').item(0).textContent
         const feedback = getFeedback(document.getElementsByClassName('TeacherFeedback__StyledTeacherFeedback-gzhlj7-0')[0])
         const takeAgain = feedback.takeAgain
         const difficulty = feedback.difficulty
@@ -123,6 +123,9 @@ async function getProfessor(url) {
 
         for (let block of ratingBlocks)
             ratings.push(getRating(block))
+
+        if (quality == 'N/A')
+            quality = null
 
         return { url, firstName, lastName, quality, difficulty, takeAgain, department, university, ratings }
     } catch (e) {
@@ -145,6 +148,8 @@ export default async function run() {
     const dayDiff = getDayDiff(administrative.dateFetched, new Date())
 
     if (dayDiff > 20) {
+        console.log('Started Scraping ...')
+
         numPages = await getNumPages(searchParams)
         for (let i = 1; i <= numPages; i++) {
             const document = await fetchPage(i, searchParams)
@@ -153,21 +158,33 @@ export default async function run() {
 
         urls = urls.flat()
         createUpdateAdministrative({ urls, dateFetched: new Date })
-    } else {
-        urls = administrative.urls
-    }
 
-    let i = 0
-    for (let url of urls) {
-        if (i > 2)
-            break
-        console.log(i)
-        const professor = await getProfessor(url)
-        professors.push(professor)
-        i++
-    }
+        let i = 0
+        for (let url of urls) {
+            if (i % 10 == 0)
+                console.info(`Parsing page: ${i}`)
 
-    fs.writeFile('rmpdata.txt', JSON.stringify(professors), () => console.log)
-    // await createProfessors(professors)
-    console.log('Scraping is finished')
+            const professor = await getProfessor(url)
+            professors.push(professor)
+            i++
+        }
+
+        // Save to file in case saving to db fails
+        try {
+            fs.writeFile('rmpdata.txt', JSON.stringify(professors), () => console.log)
+        } catch (e) {
+            console.error('Failed to save to file')
+            console.error(e)
+        }
+
+        // save to db
+        try {
+            await createProfessors(professors)
+        } catch (e) {
+            console.error('Failed to save to db')
+            console.error(e)
+        }
+
+        console.log('Scraping is finished')
+    }
 }
