@@ -1,6 +1,6 @@
 {
     "manifest_version": 2,
-    "name": "BYUI Rate My Professor",
+    "name": "Teacher Rating",
     "short_name": "BYUI RMP",
     "version": "0.0.1",
     "description": "View teacher ratings from the school's website",
@@ -15,10 +15,13 @@
     "content_scripts": [
         {
             "matches": [
-                "https://byui.instructure.com/courses/88266"
+                "https://my.byui.edu/ICS/Academics/Academic_Information.jnz?portlet=Registration&screen=Add+Drop+Courses+BYUI&screenType=next"
             ],
             "js": [
                 "index.js"
+            ],
+            "css": [
+                "main.css"
             ]
         }
     ],
