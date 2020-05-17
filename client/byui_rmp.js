@@ -1,7 +1,8 @@
-// imports
+import { getProfessorRating } from './professorData.js'
 
 displayRatings()
 
 async function displayRatings() {
-    // main function
+    const raiting = await getProfessorRating('peter')
+    console.log(raiting)
 }

@@ -170,12 +170,12 @@ export default async function run() {
         }
 
         // Save to file in case saving to db fails
-        try {
-            fs.writeFile('rmpdata.txt', JSON.stringify(professors), () => console.log)
-        } catch (e) {
-            console.error('Failed to save to file')
-            console.error(e)
-        }
+        // try {
+        //     fs.writeFile('rmpdata.txt', JSON.stringify(professors), () => console.log)
+        // } catch (e) {
+        //     console.error('Failed to save to file')
+        //     console.error(e)
+        // }
 
         // save to db
         try {
