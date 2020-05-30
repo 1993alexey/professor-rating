@@ -1,5 +1,5 @@
 const storageItem = 'byuiRMP'
-const cacheValidFor = 7                     // days
+const cacheValidFor = 7 // days
 const professors = init(storageItem)
 
 export async function getProfessorRating(searchStr) {
