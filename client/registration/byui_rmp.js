@@ -12,7 +12,6 @@ async function displayOneRating(container) {
         const name = container.innerText
         container.innerHTML = `<a href="${rating.link}" target="_blank">${name}</a>`
         container.innerHTML += createRating(rating.rating)
-        console.log(rating)
     }
 }
 

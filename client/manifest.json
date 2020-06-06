@@ -15,7 +15,7 @@
     "content_scripts": [
         {
             "matches": [
-                "https://my.byui.edu/ICS/Academics/Academic_Information.jnz?portlet=Registration&screen=Add+Drop+Courses+BYUI&screenType=next"
+                "https://my.byui.edu/ICS/Academics/Academic_Information.jnz?portlet=Registration&screen=*"
             ],
             "js": [
                 "registration/index.js"
