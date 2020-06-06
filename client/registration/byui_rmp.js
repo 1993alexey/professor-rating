@@ -47,7 +47,7 @@ function isRegistrationPage() {
 }
 
 function convertRating(rating) {
-    return 105 * (rating / 5)
+    return 100 * (rating / 5)
 }
 
 if (isRegistrationPage())
