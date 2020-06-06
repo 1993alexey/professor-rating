@@ -5,9 +5,9 @@
     "version": "0.0.1",
     "description": "View teacher ratings from the school's website",
     "icons": {
-        "16": "icon16.png",
-        "48": "icon48.png",
-        "128": "icon128.png"
+        "16": "img/icon16.png",
+        "48": "img/icon48.png",
+        "128": "img/icon128.png"
     },
     "permissions": [
         "https://search-production.ratemyprofessors.com/*"
@@ -18,25 +18,25 @@
                 "https://my.byui.edu/ICS/Academics/Academic_Information.jnz?portlet=Registration&screen=Add+Drop+Courses+BYUI&screenType=next"
             ],
             "js": [
-                "index.js"
+                "registration/index.js"
             ],
             "css": [
-                "main.css"
+                "registration/main.css"
             ]
         }
     ],
     "background": {
         "scripts": [
-            "fetcher.js"
+            "data-processing/fetcher.js"
         ],
         "persistent": false
     },
     "web_accessible_resources": [
-        "index.js",
-        "byui_rmp.js",
-        "professorData.js"
+        "registration/index.js",
+        "registration/byui_rmp.js",
+        "data-processing/professorData.js"
     ],
     "browser_action": {
-        "default_icon": "icon128.png"
+        "default_icon": "img/icon128.png"
     }
 }

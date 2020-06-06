@@ -1,17 +1,16 @@
-import { getProfessorRating } from './professorData.js'
+import { getProfessorRating } from '../data-processing/professorData.js'
 
-// getTeacherName()
 async function displayRatings() {
-    // const rating = await getProfessorRating('Barney, Lee S.')
-    // console.log(rating)
-    // console.log(getProfessorContainers()[1].innerText)
     const containers = getProfessorContainers()
-    for (let container of containers) {
-        const rating = await getProfessorRating(container.innerText)
-        if (rating) {
-            container.innerHTML += createRating(rating.rating)
-            console.log(rating)
-        }
+    for (let container of containers)
+        displayOneRating(container)
+}
+
+async function displayOneRating(container) {
+    const rating = await getProfessorRating(container.innerText)
+    if (rating) {
+        container.innerHTML += createRating(rating.rating)
+        console.log(rating)
     }
 }
 
@@ -50,6 +49,5 @@ function convertRating(rating) {
     return 105 * (rating / 5)
 }
 
-if (isRegistrationPage()) {
+if (isRegistrationPage())
     displayRatings()
-}
