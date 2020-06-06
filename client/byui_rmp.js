@@ -1,19 +1,20 @@
 import { getProfessorRating } from './professorData.js'
 
-displayRatings()
 // getTeacherName()
 async function displayRatings() {
-    const rating = await getProfessorRating('Blanchard, Todd')
-    console.log(rating)
-    console.log(getProfessorContainers())
-
-
+    // const rating = await getProfessorRating('Barney, Lee S.')
+    // console.log(rating)
+    // console.log(getProfessorContainers()[1].innerText)
+    const containers = getProfessorContainers()
+    for (let container of containers) {
+        const rating = await getProfessorRating(container.innerText)
+        if (rating) {
+            container.innerHTML += createRating(rating.rating)
+            console.log(rating)
+        }
+    }
 }
-// function getTeacherName() {
-//     let teacherName = document.getElementsByTagName('td')[12].innerHTML
-//     console.log('hi')
-//     console.log(teacherName)
-// }
+
 
 function getProfessorContainers() {
     const containers = []
@@ -25,7 +26,6 @@ function getProfessorContainers() {
 }
 
 function createRating(rating) {
-
     return `<div class="star-ratings-css">
         <div class="star-ratings-css-top" style="width: ${convertRating(rating)}%">
             <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
@@ -48,4 +48,8 @@ function isRegistrationPage() {
 
 function convertRating(rating) {
     return 105 * (rating / 5)
+}
+
+if (isRegistrationPage()) {
+    displayRatings()
 }
