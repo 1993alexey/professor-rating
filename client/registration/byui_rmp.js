@@ -9,6 +9,8 @@ async function displayRatings() {
 async function displayOneRating(container) {
     const rating = await getProfessorRating(container.innerText)
     if (rating) {
+        const name = container.innerText
+        container.innerHTML = `<a href="${rating.link}" target="_blank">${name}</a>`
         container.innerHTML += createRating(rating.rating)
         console.log(rating)
     }
