@@ -1,106 +1,93 @@
-import { getProfessorRating, getProfessorDetails } from '../data-processing/professorData.js'
+<!DOCTYPE html>
+<html lang="en">
 
-async function displayRatings() {
-    const containers = getProfessorContainers()
-    const displayRef = []
-    for (let container of containers)
-        displayRef.push(displayOneRating(container))
-
-    // remove extra gap
-    Promise.all(displayRef).then((results) => {
-        let min = 999999
-        for (let result of results) {
-            if (result && result.height < min)
-                min = result.height
-        }
-
-        for (let result of results) {
-            if (result && result.height > min)
-                result.el.classList.add('gap')
-        }
-    })
-}
-
-async function displayOneRating(container) {
-    const rating = await getProfessorRating(container.innerText)
-    if (rating && rating.rating) {
-        //create link
-        const name = container.innerText
-        const link = document.createElement('a')
-        link.href = rating.link
-        link.classList.add('tool')
-        link.target = '_blank'
-        link.innerText = name
-        container.innerHTML = ''
-        link.innerHTML += getLoadingView()
-
-        // fetch data when mouse is hovered over the link
-        link.addEventListener('mouseover', async (e) => {
-            const el = e.target
-            const loadingEl = el.getElementsByClassName('lds-ripple')
-            if (el.classList.contains('tool') && el.hasAttribute('href') && loadingEl.length) {
-                const tooltip = el.firstElementChild
-                let professorName = el.childNodes[0].wholeText
-                const professor = await getProfessorDetails(professorName)
-                tooltip.innerHTML = createPopupContent(professor)
-            }
-        })
-
-        container.append(link)
-        container.append(createRating(rating.rating))
-
-        return { el: link, height: link.offsetHeight }
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    .star-ratings-css {
+        unicode-bidi: bidi-override;
+        color: #c5c5c5;
+        font-size: 25px;
+        margin: 0;
+        position: relative;
+        padding: 0;
+        text-shadow: 0px 1px 0 #a2a2a2;
     }
-}
 
-function createPopupContent(professor) {
-    let ratingDisplay
-    console.log(professor)
+    .star-ratings-css-top {
+        color: green;
+        padding: 0;
+        position: absolute;
+        z-index: 1;
+        display: block;
+        top: 0;
+        left: 0;
+        overflow: hidden;
+    }
 
-    if (professor.numRatings)
-        ratingDisplay = `${professor.rating} (based on ${professor.numRatings} rating${professor.numRatings && professor.numRatings.length > 1 ? 's' : ''})`
-    else
-        ratingDisplay = professor.rating
-
-    return (
-        `<div>
-            <div><span>Name: </span>${professor.name ? professor.name : 'N/A'}</div>
-            <div><span>Department: </span>${professor.department ? professor.department : 'N/A'}</div>
-            <div><span>Rating: </span>${professor.rating ? ratingDisplay : 'N/A'}</div>
-            <div><span>Difficulty: </span> ${professor.difficulty ? professor.difficulty : 'N/A'}</div>
-            <div><span>Take again: </span> ${professor.takeAgain ? professor.takeAgain : 'N/A'}</div>
-            <div><span>Top tags: </span> ${professor.tags.length ? professor.tags.join(', ') : 'N/A'}</div>
-            <br>
-            <div><span>Most helpful comment: </span> </div>
-            <div>${professor.review ? professor.review : 'N/A'}</div>
-            <br>
-            <div><a href="${professor.link}" target="_blank">View on RateMyProfessors.com</a></div>
-         </div>`
-    )
-}
-
-function getLoadingView() {
-    return ` <div class="data">
-                <div class="lds-ripple"><div></div><div></div></div>
-                <div class="loading-text">Loading...</div>
-            </div>`
-}
+    .star-ratings-css-bottom {
+        padding: 0;
+        display: block;
+        z-index: 0;
+    }
 
 
-function getProfessorContainers() {
-    const containers = []
-    const rows = document.getElementById('pg0_V_dgCourses').children[1].children
-    for (let row of rows)
-        containers.push(row.children[4])
+    .star-container {
+        height: 40px;
+        width: 200px;
+        overflow-x: hidden;
+        position: relative;
 
-    return containers
-}
+    }
 
-function createRating(rating) {
-    const div = document.createElement('div')
-    div.className = 'star-container'
-    div.innerHTML = `
-        <div class="top-layer" style="width: ${convertRating(rating)}%">
+    .top-layer {
+        height: 100%;
+        width: 100%;
+        overflow-x: hidden;
+        position: absolute;
+    }
+
+    .top-layer-container {
+        height: 100%;
+        position: absolute;
+        left: 0;
+        display: flex;
+    }
+
+    .bottom-layer {
+        display: flex;
+    }
+
+    .bottom-layer>svg,
+    .top-layer svg {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        fill: #c5c5c5;
+    }
+
+    .top-layer svg {
+        fill: green;
+    }
+</style>
+
+<body>
+
+    <!-- 
+    <div class="star-ratings-css ">
+        <div class="star-ratings-css-top" style="width: 50%">
+
+            <span></span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+        <div class="star-ratings-css-bottom"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+        </div>
+    </div> -->
+
+
+    <div class="star-container">
+        <div class="top-layer">
             <div class="top-layer-container">
                 <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg"
                     xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512.002 512.002"
@@ -209,26 +196,7 @@ function createRating(rating) {
                                 C511.56,208.649,513.033,202.688,511.267,197.258z" />
             </svg>
         </div>
-            
-            `
-    return div
-}
+    </div>
+</body>
 
-function isRegistrationPage() {
-    try {
-        let container = document.getElementById('pg0_V_dgCourses')
-        if (container)
-            return true
-        else
-            return false
-    } catch (e) {
-        return false
-    }
-}
-
-function convertRating(rating) {
-    return 100 * (rating / 5)
-}
-
-if (isRegistrationPage())
-    displayRatings()
+</html>

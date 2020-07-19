@@ -3,8 +3,8 @@
     color: #c5c5c5;
     font-size: 25px;
     height: 25px;
-    width: 100%;
-    margin: 0 auto;
+    width: 126px;
+    margin: 0;
     position: relative;
     padding: 0;
     text-shadow: 0px 1px 0 #a2a2a2;
@@ -25,4 +25,197 @@
     padding: 0;
     display: block;
     z-index: 0;
+    width: 125px;
+}
+
+
+
+
+
+
+
+   .star-container {
+        height: 20px;
+        width: 100px;
+        overflow-x: hidden;
+        position: relative;
+
+    }
+
+    .top-layer {
+        height: 100%;
+        width: 100%;
+        overflow-x: hidden;
+        position: absolute;
+    }
+
+    .top-layer-container {
+        height: 100%;
+        position: absolute;
+        left: 0;
+        display: flex;
+    }
+
+    .bottom-layer {
+        display: flex;
+    }
+
+    .bottom-layer>svg,
+    .top-layer svg {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        fill: #c5c5c5;
+    }
+
+    .top-layer svg {
+        fill: green;
+    }
+
+
+
+
+
+
+/*== start of code for tooltips ==*/
+.tool {
+    cursor: help;
+    position: relative;
+}
+
+
+/*== common styles for both parts of tool tip ==*/
+.tool::before,
+.tool .data {
+    left: 50%;
+    opacity: 0;
+    position: absolute;
+    z-index: -100;
+}
+
+.tool:hover::before,
+.tool:focus::before,
+.tool:hover .data,
+.tool:focus .data {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    z-index: 100;
+}
+
+
+/*== pointer tip ==*/
+.tool::before {
+    border-style: solid;
+    border-width: 1em 0.75em 0 0.75em;
+    border-color: #3E474F transparent transparent transparent;
+    bottom: 100%;
+    content: "";
+    margin-left: -0.5em;
+    transition: all .65s cubic-bezier(.84, -0.18, .31, 1.26), opacity .65s .5s;
+    transform: scale(.6) translateY(-90%);
+}
+
+.tool:hover::before,
+.tool:focus::before {
+    transition: all .65s cubic-bezier(.84, -0.18, .31, 1.26) .2s;
+}
+
+
+/*== speech bubble ==*/
+.tool .data {
+    background: #3E474F;
+    border-radius: .25em;
+    bottom: 175%;
+    color: #EDEFF0;
+    margin-left: -16em;
+    padding: 1em;
+    transition: all .65s cubic-bezier(.84, -0.18, .31, 1.26) .2s;
+    transform: scale(.6) translateY(50%);
+    width: 32em;
+    text-align: left;
+    white-space: normal;
+}
+
+.tool.gap .data {
+    bottom: 135%;
+}
+
+.tool:hover .data,
+.tool:focus .data {
+    transition: all .65s cubic-bezier(.84, -0.18, .31, 1.26);
+    
+}
+
+a .data {
+    left: 50%;
+    opacity: 0;
+    position: absolute;
+    z-index: -100;
+
+}
+
+a .data span {
+  color: #6fbb23
+}
+
+ a .data a {
+  color: white;
+  text-decoration: underline;
+ }
+
+ a .data a:active, a .data a:focus, a .data a:visited {
+  color: white;
+  text-decoration: underline;
+}
+
+a .data a:hover {
+  color:#0699ee;
+}
+
+
+
+/* loading spinner */
+.lds-ripple {
+  display: inline-block;
+  position: relative;
+  width: 130px;
+  height: 130px;
+  /* margin-bottom: 10px; */
+  left: 34%;
+}
+
+.lds-ripple div {
+  position: absolute;
+  border: 4px solid #fff;
+  opacity: 1;
+  border-radius: 50%;
+  animation: lds-ripple 1s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+}
+.lds-ripple div:nth-child(2) {
+  animation-delay: -0.5s;
+}
+@keyframes lds-ripple {
+  0% {
+    top: 65px;
+    left: 65px;
+    width: 0;
+    height: 0;
+    opacity: 1;
+  }
+  100% {
+    top: 0px;
+    left: 0px;
+    width: 130px;
+    height: 130px;
+    opacity: 0;
+  }
+}
+
+.loading-text {
+  text-align: center;
+}
+
+/* Fix cut off for the first three professors */
+.table-responsive {
+  overflow: unset !important;
 }

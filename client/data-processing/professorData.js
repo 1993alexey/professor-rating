@@ -29,8 +29,79 @@ export async function getProfessorRating(searchStr) {
     return professors[searchStr]
 }
 
-export function getProfessorDetails(searchStr) {
+export async function getProfessorDetails(searchStr) {
+    searchStr = preprocessName(searchStr)
+    let professor = professors[searchStr]
 
+    if (!professor)
+        return
+
+    if (validCache(professor) && 'review' in professor)
+        return professors[searchStr]
+
+    const details = await fetchProfessorDetails(professor)
+    if (details) {
+        professor = { ...professor, ...details }
+        professors[searchStr] = professor
+        saveProfessors(professors, storageItem)
+    }
+
+    return professor
+}
+
+async function fetchProfessorDetails(professor) {
+    let htmlText = (await sendMessage({ url: professor.link, target: 'details' })).data
+    const html = new DOMParser().parseFromString(htmlText, "text/html");
+
+    try {
+        const tags = []
+        const name = html.getElementsByClassName('NameTitle__Name-dowf0z-0').item(0).textContent
+        const feedback = getFeedback(html.getElementsByClassName('TeacherFeedback__StyledTeacherFeedback-gzhlj7-0')[0])
+        const takeAgain = feedback.takeAgain
+        const institution = html.getElementsByClassName('NameTitle__Title-dowf0z-1').item(0)
+        const department = institution.firstElementChild.firstElementChild.textContent.replace(' department', '')
+        const ratingBlocks = html.getElementsByClassName('Rating__StyledRating-sc-1rhvpxz-0')
+        const mostHelpful = html.getElementsByClassName('HelpfulRating__StyledRating-sc-4ngnti-0')[0]
+        const numRatings = html.getElementsByClassName('RatingValue__NumRatings-qw8sqy-0 jvzMox')[0].innerText.split(' ')[1]
+        let tagsHtml = html.getElementsByClassName('TeacherTags__TagsContainer-sc-16vmh1y-0 dbxJaW')
+        let review = ''
+
+
+        if (mostHelpful)
+            review = mostHelpful.getElementsByClassName('Comments__StyledComments-dzzyvm-0').item(0).textContent
+        else if (ratingBlocks[0])
+            review = ratingBlocks[0].getElementsByClassName('Comments__StyledComments-dzzyvm-0').item(0).textContent
+
+        if (tagsHtml.length)
+            tagsHtml = tagsHtml[0].children
+
+        for (let tagHtml of tagsHtml)
+            tags.push(tagHtml.textContent)
+
+        return { name, takeAgain, department, review, tags, numRatings }
+    } catch (e) {
+        console.error(e.message)
+    }
+}
+
+function getFeedback(feedbackBlock) {
+    const feedbackTransform = {
+        'Would take again': 'takeAgain',
+        'Level of Difficulty': 'difficulty',
+    }
+
+    let difficulty
+    let takeAgain
+
+    for (let feedback of feedbackBlock.children) {
+        const feedbackTransformed = feedbackTransform[feedback.children[1].textContent]
+        if (feedbackTransformed == 'difficulty')
+            difficulty = feedback.children[0].textContent
+        else if (feedbackTransformed == 'takeAgain')
+            takeAgain = feedback.children[0].textContent
+    }
+
+    return { difficulty, takeAgain }
 }
 
 async function findProfessor(searchStr) {
@@ -38,17 +109,16 @@ async function findProfessor(searchStr) {
     if (nameSplit.length == 2)
         return await fetchProfessor(searchStr)
 
-    console.log(nameSplit[0] + ' ' + nameSplit[1])
     let res = await fetchProfessor(nameSplit[0] + ' ' + nameSplit[1])
     if (!res.response.numFound) {
         res = await fetchProfessor(nameSplit[0] + ' ' + nameSplit[2])
-        console.log(nameSplit[0] + ' ' + nameSplit[2])
         if (!res.response.numFound)
             return null
     }
 
     return res
 }
+
 
 function fetchProfessor(searchStr) {
     const baseUrl = 'https://search-production.ratemyprofessors.com/solr/rmp/select/?solrformat=true&rows=5&wt=json'
@@ -103,7 +173,7 @@ function preprocessName(name) {
     if (name.split(',').length > 2)
         console.log(name)
 
-    name = name.replace(',', '')
+    name = name.replace(',', '').trim()
 
     return name
 }
