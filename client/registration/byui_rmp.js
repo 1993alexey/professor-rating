@@ -22,12 +22,12 @@ async function displayRatings() {
 }
 
 async function displayOneRating(container) {
-    const rating = await getProfessorRating(container.innerText)
-    if (rating && rating.rating) {
+    const professor = await getProfessorRating(container.innerText)
+    if (professor && professor.rating) {
         //create link
         const name = container.innerText
         const link = document.createElement('a')
-        link.href = rating.link
+        link.href = professor.link
         link.classList.add('tool')
         link.target = '_blank'
         link.innerText = name
@@ -40,14 +40,12 @@ async function displayOneRating(container) {
             const loadingEl = el.getElementsByClassName('lds-ripple')
             if (el.classList.contains('tool') && el.hasAttribute('href') && loadingEl.length) {
                 const tooltip = el.firstElementChild
-                let professorName = el.childNodes[0].wholeText
-                const professor = await getProfessorDetails(professorName)
                 tooltip.innerHTML = createPopupContent(professor)
             }
         })
 
         container.append(link)
-        container.append(createRating(rating.rating))
+        container.append(createRating(professor.rating))
 
         return { el: link, height: link.offsetHeight }
     }
@@ -55,24 +53,25 @@ async function displayOneRating(container) {
 
 function createPopupContent(professor) {
     let ratingDisplay
-    console.log(professor)
 
     if (professor.numRatings)
         ratingDisplay = `${professor.rating} (based on ${professor.numRatings} rating${professor.numRatings && professor.numRatings.length > 1 ? 's' : ''})`
     else
         ratingDisplay = professor.rating
 
+    const tags = professor.tags.map(tag => `${tag.tagName} (${tag.tagCount})`)
+
     return (
         `<div>
             <div><span>Name: </span>${professor.name ? professor.name : 'N/A'}</div>
             <div><span>Department: </span>${professor.department ? professor.department : 'N/A'}</div>
             <div><span>Rating: </span>${professor.rating ? ratingDisplay : 'N/A'}</div>
-            <div><span>Difficulty: </span> ${professor.difficulty ? professor.difficulty : 'N/A'}</div>
-            <div><span>Take again: </span> ${professor.takeAgain ? professor.takeAgain : 'N/A'}</div>
-            <div><span>Top tags: </span> ${professor.tags.length ? professor.tags.join(', ') : 'N/A'}</div>
+            <div><span>Difficulty: </span> ${professor.difficulty ? Math.round(professor.difficulty * 10) / 10 : 'N/A'}</div>
+            <div><span>Take again: </span> ${professor.takeAgain != - 1 ?  Math.round(professor.takeAgain * 10) / 10 + '%': 'N/A'}</div>
+            <div><span>Top tags: </span> ${tags ? tags.join(', ') : 'N/A'}</div>
             <br>
-            <div><span>Most helpful comment: </span> </div>
-            <div>${professor.review ? professor.review : 'N/A'}</div>
+            <div><span>Most recent comment: </span> </div>
+            <div>${professor.comment ? professor.comment : 'N/A'}</div>
             <br>
             <div><a href="${professor.link}" target="_blank">View on RateMyProfessors.com</a></div>
          </div>`
@@ -89,7 +88,7 @@ function getLoadingView() {
 
 function getProfessorContainers() {
     const containers = []
-    const rows = document.getElementById('pg0_V_dgCourses').children[1].children
+    const rows = document.getElementById('tableCourses').children[1].children
     for (let row of rows)
         containers.push(row.children[4])
 
@@ -216,7 +215,7 @@ function createRating(rating) {
 
 function isRegistrationPage() {
     try {
-        let container = document.getElementById('pg0_V_dgCourses')
+        let container = document.getElementById('tableCourses') // migrated from version 0.0.6 with value pg0_V_dgCourses
         if (container)
             return true
         else
@@ -231,4 +230,4 @@ function convertRating(rating) {
 }
 
 if (isRegistrationPage())
-    displayRatings()
+    setTimeout(displayRatings, 1000)

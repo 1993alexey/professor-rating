@@ -1,15 +1,15 @@
 {
-    "manifest_version": 2,
+    "manifest_version": 3,
     "name": "BYUI Professor Ratings",
     "short_name": "BYUI RMP",
-    "version": "0.0.5",
+    "version": "1.0.0",
     "description": "View RMP professor ratings on the BYUI registration page",
     "icons": {
         "16": "img/icon16.png",
         "48": "img/icon48.png",
         "128": "img/icon128.png"
     },
-    "permissions": [
+    "host_permissions": [
         "https://search-production.ratemyprofessors.com/*",
         "https://www.ratemyprofessors.com/*"
     ],
@@ -27,17 +27,20 @@
         }
     ],
     "background": {
-        "scripts": [
-            "data-processing/fetcher.js"
-        ],
-        "persistent": false
+        "service_worker": "data-processing/fetcher.js",
+        "type": "module"
     },
     "web_accessible_resources": [
-        "registration/index.js",
-        "registration/byui_rmp.js",
-        "data-processing/professorData.js"
+        {
+            "resources": [ 
+                "registration/index.js",
+                "registration/byui_rmp.js",
+                "data-processing/professorData.js"
+            ],
+            "matches": [ "https://my.byui.edu/*" ]
+        }
     ],
-    "browser_action": {
+    "action": {
         "default_icon": "img/icon128.png"
     }
 }

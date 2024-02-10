@@ -145,9 +145,12 @@ export default async function run() {
     let urls = []
     const professors = []
     const administrative = await getAdministrative()
-    const dayDiff = getDayDiff(administrative.dateFetched, new Date())
+    let dayDiff = 99999
+    if (administrative && administrative.dateFetched) {
+        dayDiff = getDayDiff(administrative.dateFetched, new Date())
+    }
 
-    if (dayDiff > 20) {
+    if (dayDiff > 20 || true) { // TODO: remove true condition
         console.log('Started Scraping ...')
 
         numPages = await getNumPages(searchParams)
@@ -167,6 +170,7 @@ export default async function run() {
             const professor = await getProfessor(url)
             professors.push(professor)
             i++
+            break // TODO: remove
         }
 
         // Save to file in case saving to db fails

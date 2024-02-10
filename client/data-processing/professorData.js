@@ -9,19 +9,25 @@ export async function getProfessorRating(searchStr) {
         return professors[searchStr]
 
     // make sure we found the requested professor
-    const res = await findProfessor(searchStr)
-    if (!res || !res.response.numFound) {
+    const professorRaw = await findProfessor(searchStr)
+    if (!professorRaw) {
         professors[searchStr] = null
         saveProfessors(professors, storageItem)
         return
     }
 
     // create professor from response
-    const professorParams = res.response.docs[0]
     const professor = {}
-    professor['link'] = `https://www.ratemyprofessors.com/ShowRatings.jsp?tid=${professorParams.pk_id}`
-    professor['rating'] = professorParams.averageratingscore_rf
-    professor['difficulty'] = professorParams.averageeasyscore_rf
+    professorRaw.teacherRatingTags.sort((a,b) => b.tagCount - a.tagCount)
+    professor['link'] = `https://www.ratemyprofessors.com/professor/${professorRaw.legacyId}`
+    professor['rating'] = professorRaw.avgRating
+    professor['difficulty'] = professorRaw.avgDifficultyRounded
+    professor['department'] = professorRaw.department
+    professor['comment'] = professorRaw.ratings.length ? professorRaw.ratings[0].comment : null
+    professor['takeAgain'] = professorRaw.wouldTakeAgainPercentRounded
+    professor['name'] = `${professorRaw.firstName} ${professorRaw.lastName}`
+    professor['tags'] = professorRaw.teacherRatingTags
+    professor['numRatings'] = professorRaw.numRatings
     professor['retrievedAt'] = new Date()
     professors[searchStr] = professor
 
@@ -109,21 +115,88 @@ async function findProfessor(searchStr) {
     if (nameSplit.length == 2)
         return await fetchProfessor(searchStr)
 
-    let res = await fetchProfessor(nameSplit[0] + ' ' + nameSplit[1])
-    if (!res.response.numFound) {
-        res = await fetchProfessor(nameSplit[0] + ' ' + nameSplit[2])
-        if (!res.response.numFound)
+    let professor = await fetchProfessor(nameSplit[0] + ' ' + nameSplit[1])
+    if (!professor) {
+        professor = await fetchProfessor(nameSplit[0] + ' ' + nameSplit[2])
+        if (!professor)
             return null
     }
-
-    return res
+    return professor
 }
 
 
-function fetchProfessor(searchStr) {
-    const baseUrl = 'https://search-production.ratemyprofessors.com/solr/rmp/select/?solrformat=true&rows=5&wt=json'
-    const url = `${baseUrl}&q=${searchStr} AND schoolid_s:1754`
-    return sendMessage({ url, target: 'rating' })
+async function fetchProfessor(searchStr) {
+    const query = `
+    query NewSearchTeachersQeuery($query: TeacherSearchQuery!, $count: Int) {
+        newSearch {
+          teachers(query: $query, first: $count) {
+            didFallback
+            edges {
+              node {
+                id
+                avgDifficultyRounded
+                legacyId
+                firstName
+                lastName
+                department
+                avgRating
+                numRatings
+                wouldTakeAgainPercentRounded
+                ratingsDistribution {
+                  total
+                  r1
+                  r2
+                  r3
+                  r4
+                  r5
+                }
+                teacherRatingTags {
+                  tagName
+                  tagCount
+                }
+                ratings(first: 1) {
+                  edges {
+                    node {
+                      comment
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }      
+    `
+    const variables = {
+      "query": {
+          "text": searchStr,
+          "schoolID": "U2Nob29sLTE3NTQ="
+      },
+      "count": 10
+    }
+    const body = {
+      query,
+      variables
+    }
+    
+    const options = {
+      method: 'POST',
+      headers: {
+        Authorization: 'Basic dGVzdDp0ZXN0'
+      },
+      body: JSON.stringify(body)
+    }
+    
+    const url = 'https://www.ratemyprofessors.com/graphql'
+
+    try {
+        let response = await sendMessage({ url, options })
+        const result = response.data.newSearch.teachers.edges[0].node
+        result.ratings = result.ratings.edges.map(edge => edge.node)
+        return result
+    } catch(e) {
+        console.error(e)
+    }
 }
 
 function init(storageItem) {
