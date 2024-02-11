@@ -191,9 +191,11 @@ async function fetchProfessor(searchStr) {
 
     try {
         let response = await sendMessage({ url, options })
-        const result = response.data.newSearch.teachers.edges[0].node
-        result.ratings = result.ratings.edges.map(edge => edge.node)
-        return result
+        if (response.data.newSearch.teachers.edges[0]) {
+            const result = response.data.newSearch.teachers.edges[0].node
+            result.ratings = result.ratings.edges.map(edge => edge.node)
+            return result
+        }
     } catch(e) {
         console.error(e)
     }
