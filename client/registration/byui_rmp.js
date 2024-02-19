@@ -229,5 +229,27 @@ function convertRating(rating) {
     return 100 * (rating / 5)
 }
 
-if (isRegistrationPage())
-    setTimeout(displayRatings, 1000)
+function isReady(retryCount = 5, retryDelay = 500) {
+    return new Promise((resolve, reject) => {
+        if (retryCount) {
+            if (document.getElementById('tableCourses').children[1].children.length)
+                resolve(true)
+            else {
+                setTimeout(async () => resolve(await isReady(retryCount - 1)), retryDelay)
+            }
+        } else {
+            resolve(false)
+        }
+    })
+}
+
+if (isRegistrationPage()) {
+    setTimeout(() => {
+        isReady().then(ready => {
+            if (ready) {
+                displayRatings()
+            }
+        })
+    }, 1000)
+}
+
